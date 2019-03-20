@@ -76,6 +76,41 @@ public class Utils extends AppCompatActivity {
             return new Builder(true,true);
         }
 
+        public String copyToAppDirectories(String filePath,String directoryName) throws IOException{
+            File src=new File(filePath);
+            File directory = activityParent.get().getDir(directoryName, Context.MODE_PRIVATE);
+            //noinspection ResultOfMethodCallIgnored
+            directory.mkdir();
+            File des = new File(directory,src.getName());
+                InputStream in = new FileInputStream(src);
+                try {
+                    OutputStream out = new FileOutputStream(des);
+                    try {
+                        // Transfer bytes from in to out
+                        byte[] buf = new byte[1024];
+                        int len;
+                        while ((len = in.read(buf)) > 0) {
+                            out.write(buf, 0, len);
+                        }
+                    } finally {
+                        out.close();
+                    }
+                } finally {
+                    in.close();
+                }
+                return des.getAbsolutePath();
+
+        }
+
+        public String moveToAppDirectories(String filePath,String directoryName) throws IOException {
+            String path = copyToAppDirectories(filePath,directoryName);
+            File src = new File(filePath);
+            if (src.exists())
+                src.delete();
+
+            return path;
+        }
+
     }
 
 
@@ -291,7 +326,7 @@ public class Utils extends AppCompatActivity {
 
         }
 
-        private  Uri fileToUri(File file) {
+        private static Uri fileToUri(File file) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 return FileProvider.getUriForFile(activityParent.get(), activityParent.get().getPackageName()+".file_library_provider", file);
             } else {

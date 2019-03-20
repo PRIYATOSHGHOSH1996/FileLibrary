@@ -1,6 +1,14 @@
 package com.example.sampleactivity;
 
+import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -9,6 +17,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -19,9 +30,13 @@ import android.widget.TextView;
 import com.filelibrary.Callback;
 import com.filelibrary.Utils;
 import com.filelibrary.exception.ActivityOrFragmentNullException;
+import com.notificationlibrary.NotificationHelper;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
-
+Bitmap bitmap;
+int id=1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     public void click(View view) {
-       final ImageView imageView =findViewById(R.id.image_view);
+       /*final ImageView imageView =findViewById(R.id.image_view);
         final TextView textView =findViewById(R.id.text);
         try {
             Utils.with(this)
@@ -49,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onSuccess(Uri uri, String filepath) {
                             Log.e("success = ",uri+"");
                             imageView.setImageURI(uri);
+                            bitmap= BitmapFactory.decodeFile(filepath);
                             textView.setText("image save at: "+filepath);
                         }
 
@@ -60,7 +76,65 @@ public class MainActivity extends AppCompatActivity {
                     }).start();
         } catch (ActivityOrFragmentNullException e) {
             e.printStackTrace();
+        }*/
+       String CHANNEL_ID ="11";
+        int SUMMARY_ID = 0;
+        String GROUP_KEY_WORK_EMAIL = "com.android.example.WORK_EMAIL";
+
+        NotificationCompat.Builder newMessageNotification1 =
+                new NotificationCompat.Builder(MainActivity.this)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle("no 1")
+                        .setContentText("You will not believe...")
+                        .setGroup(GROUP_KEY_WORK_EMAIL)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+
+
+        NotificationCompat.Builder summaryNotification =
+                new NotificationCompat.Builder(MainActivity.this)
+                        .setContentTitle("no 0")
+                        //set content text to support devices running API level < 24
+                        .setContentText("Two new messages")
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        //build summary info into InboxStyle template
+                        .setStyle(new NotificationCompat.InboxStyle()
+                                .addLine("Alex Faarborg  Check this out")
+                                .addLine("Jeff Chang    Launch Party")
+                                .setBigContentTitle("2 new messages")
+                                .setSummaryText("janedoe@example.com"))
+                        //specify which group this notification belongs to
+                        .setGroup(GROUP_KEY_WORK_EMAIL)
+                        //set this notification as the summary for the group
+                        .setGroupSummary(true)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        NotificationManager notificationManager =
+                null;
+
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            CharSequence name = "my";
+            String description = "decr";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel mChannel = null;
+            mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+            mChannel.setDescription(description);
+            mChannel.setShowBadge(false);
+            notificationManager.createNotificationChannel(mChannel);
+            newMessageNotification1.setChannelId(CHANNEL_ID);
+            summaryNotification.setChannelId(CHANNEL_ID);
         }
+
+
+
+
+
+        notificationManager.notify(id++, newMessageNotification1.build());
+
+        notificationManager.notify(SUMMARY_ID, summaryNotification.build());
 
 
         //  Log.e("uri = ",uri+"");
@@ -113,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onSuccess(Uri uri, String filepath) {
                             Log.e("success = ",uri+"");
                             imageView.setImageURI(uri);
+                            bitmap= BitmapFactory.decodeFile(filepath);
                             textView.setText("image save at: "+filepath);
                         }
 
@@ -127,16 +202,41 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("ResourceType")
     public void click2(View view) {
         final TextView textView =findViewById(R.id.text2);
-        try {
-            Utils.with(this)
+
+            try {
+                Intent intent =new Intent(this,MainActivity.class);
+                NotificationHelper.with(MainActivity.this)
+                        .setNotification(id++,intent)
+                        .enableVibrate(false)
+                        .setHeader("app")
+                        .setBigLargeIcon(bitmap)
+                          // .setBigText("atwfygudhsdaiuyfsatyfgdbasfhdsyta\nhh\nhh\nhh\nfdgkas.efn")
+                        .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                        .setTitle("new notification")
+                        .setContentText("gyhgggggjkfiuegf")
+                        .setLargeIcon(bitmap)
+                        .build();
+            } catch (com.notificationlibrary.exception.ActivityOrFragmentNullException e) {
+                e.printStackTrace();
+            }
+
+            /*Utils.with(this)
                     .getFile()
                     .getResult(new Callback() {
                         @Override
                         public void onSuccess(Uri uri, String filepath) {
                             Log.e("success = ",uri+"");
                             textView.setText("selected file path is: "+filepath);
+                            try {
+                                Log.e("copy path",Utils.with(MainActivity.this).copyToAppDirectories(filepath,"temp"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (ActivityOrFragmentNullException e) {
+                                e.printStackTrace();
+                            }
                         }
 
                         @Override
@@ -144,10 +244,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.e("error = ",error+"");
                             textView.setText(error);
                         }
-                    }).start();
-        } catch (ActivityOrFragmentNullException e) {
-            e.printStackTrace();
-        }
+                    }).start();*/
 
     }
 }

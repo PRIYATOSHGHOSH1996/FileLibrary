@@ -1,1 +1,1 @@
-include ':app', ':filelibrary', ':FileLibrary'
+include ':app', ':filelibrary', ':FileLibrary', ':notificationlibrary'
